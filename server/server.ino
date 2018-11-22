@@ -8,8 +8,8 @@
 #include "webserver.h"
 #include <PubSubClient.h>
 
-const char* ssid = "UCC-CAMPUS";
-const char* password = "";
+const char* ssid = "zarza wifi";
+const char* password = "alberto123456";
 
 /* const char* mqttServer = "m15.cloudmqtt.com";
   const int mqttPort = 10396;
@@ -73,7 +73,7 @@ void setup(void) {
 
 
 
-  
+
 
   /*while (!clientMQTT.connected()) {
     delay(500);
@@ -124,30 +124,23 @@ void loop(void) {
   if (!clientMQTT.connected()) {
     int timeout = 10;
     EEPROM.get(0, conf);
-    
+
     clientMQTT.setServer(conf.broker_add, conf.broker_puerto);
     clientMQTT.connect(conf.clientID, conf.broker_user, conf.broker_pass);
-    
+
     Serial.println("Connection MQTT");
-    
-    while (!clientMQTT.connected() && timeout--){
-      Serial.print("."); 
+
+    while (!clientMQTT.connected() && timeout--) {
+      Serial.print(".");
       delay(500);
     }
   }
 
-  if (lastState != currState) {
-    clientMQTT.publish(conf.broker_topic, currState ? "true" : "false");
-    lastState = currState;
-  }
+  int sensorValue = analogRead(A0);
+  float voltage = sensorValue * (5.0 / 1023.0);
+  char result[8]; // Buffer big enough for 7-character float
+  dtostrf(voltage, 6, 2, result); // Leave room for too large numbers!
 
-  if (timer >= 3000) {
-    timer = 0;
-    if (digitalRead(13)) {
-      clientMQTT.publish(conf.broker_topic, "true");
-    }
-    else {
-      clientMQTT.publish(conf.broker_topic, "false");
-    }
-  }
+  clientMQTT.publish(conf.broker_topic, result);
+
 }
